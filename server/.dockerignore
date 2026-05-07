@@ -3,4 +3,7 @@ npm-debug.log
 .env
 .git
 .gitignore
-.dockerignore
+dist
+.firebase
+firebase.json
+.firebaserc
