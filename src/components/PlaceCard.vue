@@ -76,7 +76,7 @@
         </div>
 
         <!-- AI SUMMARY -->
-        <div class="bg-primary-50 dark:bg-primary-900/20 p-3 rounded-xl mb-4 border border-primary-100 dark:border-primary-900/30 h-[90px] overflow-hidden flex flex-col">
+        <div class="bg-primary-50 dark:bg-primary-900/20 p-3 rounded-xl mb-4 border border-primary-100 dark:border-primary-900/30 h-[90px] overflow-hidden flex flex-col relative">
           <div class="flex items-center gap-1.5 mb-1 text-primary-600 dark:text-primary-400 shrink-0">
             <Sparkles :size="14" />
             <span class="text-xs font-bold">Insight</span>
@@ -84,6 +84,17 @@
           <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed line-clamp-3">
             {{ truncatedAiSummary }}
           </p>
+          
+          <!-- SPECIAL NOTE FOR ALFA -->
+          <div v-if="isAlfa" class="absolute inset-0 bg-blue-600 text-white p-3 flex flex-col justify-center animate-fade-in z-10">
+            <div class="flex items-center gap-1.5 mb-1 font-bold">
+              <span>📢</span>
+              <span class="text-[10px] uppercase tracking-wider">Update Parkir</span>
+            </div>
+            <p class="text-[10px] font-bold leading-tight">
+              *Sekarang Alfa sedang membenahi masalah parkir, kemungkinan hasil analisis AI belum sinkron dengan kondisi lapangan saat ini.
+            </p>
+          </div>
         </div>
 
         <!-- STATS -->
@@ -139,6 +150,11 @@ const isSaved = computed(() => {
 const isMart = computed(() => {
   const name = (props.place?.name || '').toLowerCase();
   return name.includes('indomaret') || name.includes('alfamart') || name.includes('alfamidi');
+});
+
+const isAlfa = computed(() => {
+  const name = (props.place?.name || '').toLowerCase();
+  return name.includes('alfamart') || name.includes('alfamidi');
 });
 
 // Smart Parking Label based on real AI-analyzed data
@@ -322,6 +338,14 @@ const getDirectionsUrl = (place) => `https://www.google.com/maps/dir/?api=1&dest
 <style scoped>
 .animate-heart-beat {
   animation: heart-beat 0.4s ease-out;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes heart-beat {

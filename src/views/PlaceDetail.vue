@@ -126,6 +126,11 @@
         <p class="text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
           {{ aiData.ai_summary }}
         </p>
+        <!-- SPECIAL NOTE FOR ALFA -->
+        <p v-if="isAlfa" class="mt-3 text-[11px] font-bold text-blue-600 dark:text-blue-400 flex items-start gap-1.5 bg-blue-50/50 dark:bg-blue-900/20 p-2.5 rounded-xl border border-blue-100 dark:border-blue-900/30">
+          <span class="shrink-0">📢</span>
+          <span>*Sekarang Alfa sedang membenahi masalah parkir, kemungkinan hasil analisis AI belum sinkron dengan kondisi lapangan saat ini.</span>
+        </p>
         <div class="mt-3 pt-3 border-t border-primary-100 dark:border-primary-900/30 space-y-2">
           <div class="flex justify-between text-xs font-semibold text-primary-700/60 dark:text-primary-300/60">
             <span>Vibes: {{ aiData.vibes }}</span>
@@ -195,6 +200,11 @@
             <h4 class="font-bold text-slate-900 dark:text-white mb-1">Informasi Parkir</h4>
             <p class="text-sm text-slate-600 dark:text-slate-400">
               {{ aiData.parking_info.parking_notes }}
+            </p>
+            <!-- SPECIAL NOTE FOR ALFA -->
+            <p v-if="isAlfa" class="mt-2 text-[11px] font-bold text-blue-600 dark:text-blue-400 flex items-start gap-1.5 bg-blue-50 dark:bg-blue-900/30 p-2 rounded-lg border border-blue-100 dark:border-blue-800/50">
+              <span class="shrink-0 text-lg">💡</span>
+              <span>Sekarang Alfa sedang membenahi masalah parkir, kemungkinan data sekarang sudah tidak ada tukang parkir.</span>
             </p>
           </div>
         </div>
@@ -428,6 +438,12 @@ const isMart = computed(() => {
   if (!basePlace.value) return false;
   const name = (basePlace.value.name || '').toLowerCase();
   return name.includes('indomaret') || name.includes('alfamart') || name.includes('alfamidi');
+});
+
+const isAlfa = computed(() => {
+  if (!basePlace.value) return false;
+  const name = (basePlace.value.name || '').toLowerCase();
+  return name.includes('alfamart') || name.includes('alfamidi');
 });
 
 // 🛡️ UI-layer safety net: strip generic/real-sounding reporter labels
