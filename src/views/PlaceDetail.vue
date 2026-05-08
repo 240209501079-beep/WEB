@@ -712,19 +712,22 @@ const submitReview = async () => {
 const getMapsUrl = (loc) => {
   const lat = loc?.latitude || basePlace.value?.lat
   const lng = loc?.longitude || basePlace.value?.lng
-  return lat ? `https://www.google.com/maps/search/?api=1&query=${lat},${lng}` : '#'
+  if (!lat || !lng) return '#'
+  return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`
 }
 
 const getDirectionsUrl = (loc) => {
   const lat = loc?.latitude || basePlace.value?.lat
   const lng = loc?.longitude || basePlace.value?.lng
-  return lat ? `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}` : '#'
+  if (!lat || !lng) return '#'
+  return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`
 }
 
 const getWazeUrl = (loc) => {
   const lat = loc?.latitude || basePlace.value?.lat
   const lng = loc?.longitude || basePlace.value?.lng
-  return lat ? `https://waze.com/ul?ll=${lat},${lng}&navigate=yes` : '#'
+  if (!lat || !lng) return '#'
+  return `https://waze.com/ul?ll=${lat},${lng}&navigate=yes`
 }
 
 onMounted(async () => {

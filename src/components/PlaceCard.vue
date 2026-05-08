@@ -331,8 +331,26 @@ const goToReview = () => {
   if (props.place?.id) router.push(`/place/${props.place.id}?review=true`)
 }
 
-const getMapsUrl = (place) => place?.lat ? `https://www.google.com/maps/search/?api=1&query=${place.lat},${place.lng}` : '#'
-const getDirectionsUrl = (place) => place?.lat ? `https://www.google.com/maps/dir/?api=1&destination=${place.lat},${place.lng}` : '#'
+const getMapsUrl = (place) => {
+  if (!place) return '#'
+  const lat = place.lat || place.latitude
+  const lng = place.lng || place.longitude
+  return (lat && lng) ? `https://www.google.com/maps/search/?api=1&query=${lat},${lng}` : '#'
+}
+
+const getDirectionsUrl = (place) => {
+  if (!place) return '#'
+  const lat = place.lat || place.latitude
+  const lng = place.lng || place.longitude
+  return (lat && lng) ? `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}` : '#'
+}
+
+const getWazeUrl = (place) => {
+  if (!place) return '#'
+  const lat = place.lat || place.latitude
+  const lng = place.lng || place.longitude
+  return (lat && lng) ? `https://waze.com/ul?ll=${lat},${lng}&navigate=yes` : '#'
+}
 </script>
 
 <style scoped>
