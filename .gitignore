@@ -129,6 +129,7 @@ dist
 .pnpm-store
 
 *.yaml
+.yaml
 
 # yarn v3
 .pnp.*

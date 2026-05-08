@@ -4,6 +4,7 @@ npm-debug.log
 .git
 .gitignore
 cloudbuild.yaml
+.yaml
 dist
 .firebase
 firebase.json
