@@ -847,6 +847,126 @@ app.post('/api/admin/users/:uid/ban', adminAuth, async (req, res) => {
   }
 })
 
+// ==========================================
+// ADMIN PARKING VERIFICATION
+// ==========================================
+
+app.post('/api/admin/parking-verify', adminAuth, async (req, res) => {
+  const { place_id, admin_parking_type, admin_notes } = req.body
+  
+  // Validasi
+  const validTypes = ['kang_parkir', 'resmi', 'bayar', 'gratis', 'ada_parkir', 'belum_ada_info', 'tidak_ada_parkir']
+  if (!validTypes.includes(admin_parking_type)) {
+    return res.status(400).json({ error: 'Kategori parkir tidak valid' })
+  }
+  
+  try {
+    const parkingLabels = {
+      kang_parkir: { text: 'Ada Kang Parkir ⚠️', icon: '🔴', sentiment: 'negatif' },
+      resmi: { text: 'Parkir Resmi ✅', icon: '🟣', sentiment: 'positif' },
+      bayar: { text: 'Parkir Berbayar', icon: '🟠', sentiment: 'netral' },
+      gratis: { text: 'Parkir Gratis', icon: '🟢', sentiment: 'positif' },
+      ada_parkir: { text: 'Ada Parkir', icon: '🔵', sentiment: 'netral' },
+      belum_ada_info: { text: 'Belum Ada Info', icon: '⚪', sentiment: 'netral' },
+      tidak_ada_parkir: { text: 'Tidak Ada Parkir ❌', icon: '❌', sentiment: 'negatif' }
+    }
+    
+    const label = parkingLabels[admin_parking_type]
+    
+    await db.collection('places_analysis').doc(place_id).set({
+      place_id,
+      admin_parking: {
+        parking_type: admin_parking_type,
+        label_text: label.text,
+        label_icon: label.icon,
+        parking_sentiment: label.sentiment,
+        notes: admin_notes || null,
+        verified_at: new Date().toISOString(),
+        verified_by: req.user.email || 'Admin',
+        source: 'admin'
+      },
+      updated_at: new Date().toISOString()
+    }, { merge: true })
+    
+    // Security Log
+    await db.collection('security-log').add({
+      action: 'ADMIN_PARKING_VERIFY',
+      place_id,
+      parking_type: admin_parking_type,
+      admin_uid: req.user.uid,
+      admin_email: req.user.email,
+      timestamp: new Date().toISOString()
+    })
+    
+    res.json({ 
+      message: `Verifikasi admin berhasil! ${label.text}`,
+      data: { admin_parking: { parking_type: admin_parking_type, ...label } }
+    })
+  } catch (error) {
+    console.error('Error verifying parking:', error)
+    res.status(500).json({ error: 'Gagal menyimpan verifikasi' })
+  }
+})
+
+app.delete('/api/admin/parking-verify/:place_id', adminAuth, async (req, res) => {
+  const { place_id } = req.params
+  try {
+    const { FieldValue } = await import('firebase-admin/firestore')
+    await db.collection('places_analysis').doc(place_id).update({
+      admin_parking: FieldValue.delete(),
+      updated_at: new Date().toISOString()
+    })
+
+    // Security Log
+    await db.collection('security-log').add({
+      action: 'ADMIN_PARKING_UNVERIFY',
+      place_id,
+      admin_uid: req.user.uid,
+      admin_email: req.user.email,
+      timestamp: new Date().toISOString()
+    })
+
+    res.json({ message: 'Verifikasi admin dihapus.' })
+  } catch (error) {
+    console.error('Error removing admin verification:', error)
+    res.status(500).json({ error: 'Gagal menghapus verifikasi' })
+  }
+})
+
+app.get('/api/admin/parking-history/:placeId', adminAuth, async (req, res) => {
+  try {
+    const doc = await db.collection('places_analysis').doc(req.params.placeId).get()
+    
+    // Ambil riwayat dari security-log
+    const historySnapshot = await db.collection('security-log')
+      .where('place_id', '==', req.params.placeId)
+      .where('action', 'in', ['ADMIN_PARKING_VERIFY', 'ADMIN_PARKING_UNVERIFY'])
+      .orderBy('timestamp', 'desc')
+      .limit(20)
+      .get()
+    
+    const history = []
+    historySnapshot.forEach(h => history.push(h.data()))
+
+    if (!doc.exists) return res.json({ admin_parking: null, community_parking: null, history })
+    
+    const data = doc.data()
+    
+    res.json({
+      admin_parking: data.admin_parking || null,
+      community_parking: {
+        dominant_type: data.parking_info?.dominant_type,
+        source_count: data.parking_info?.source_count,
+        label_text: data.parking_info?.label_text
+      },
+      history
+    })
+  } catch (error) {
+    console.error('Error fetching parking history:', error)
+    res.status(500).json({ error: error.message })
+  }
+})
+
 app.get('/api/admin/dashboard', adminAuth, async (req, res) => {
   try {
     const [totalSnap, pendingSnap, approvedSnap, rejectedSnap] = await Promise.all([

@@ -202,6 +202,120 @@
         </div>
       </div>
 
+      <!-- TAB: PARKING VERIFICATION -->
+      <div v-if="activeTab === 'parking'" class="space-y-6 max-w-2xl mx-auto">
+        <div class="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm">
+          <h2 class="font-black text-2xl mb-6 flex items-center gap-3">
+            <CircleParking :size="28" class="text-blue-500" /> Verifikasi Parkir Admin
+          </h2>
+          
+          <div class="flex gap-2 mb-8">
+            <div class="relative flex-1">
+              <Search class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" :size="18" />
+              <input v-model="parkingPlaceId" @keyup.enter="searchParkingPlace" placeholder="Masukkan Place ID (Contoh: ChIJ...)" class="w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 font-bold transition-all" />
+            </div>
+            <button @click="searchParkingPlace" :disabled="isSearchingParking" class="px-8 bg-blue-600 text-white font-black rounded-2xl hover:bg-blue-700 transition-all disabled:opacity-50 flex items-center gap-2">
+              <RefreshCw v-if="isSearchingParking" :size="18" class="animate-spin" />
+              <span v-else>Cari</span>
+            </button>
+          </div>
+
+          <div v-if="parkingInfo" class="space-y-8 animate-fade-in">
+            <!-- Place Info -->
+            <div class="p-5 bg-blue-50 dark:bg-blue-900/20 rounded-2xl border border-blue-100 dark:border-blue-800/50">
+              <p class="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest mb-1">📍 Lokasi Ditemukan</p>
+              <h3 class="font-black text-xl text-slate-900 dark:text-white mb-1">{{ parkingInfo.name }}</h3>
+              <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">{{ parkingInfo.address }}</p>
+              
+              <div class="flex flex-wrap gap-4 pt-4 border-t border-blue-100 dark:border-blue-800/50">
+                <div>
+                  <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Badge Komunitas</p>
+                  <div v-if="parkingInfo.community_parking?.label_text" class="px-3 py-1 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 text-sm font-bold flex items-center gap-2">
+                    {{ parkingInfo.community_parking.label_text }}
+                    <span class="text-[10px] text-slate-400">({{ parkingInfo.community_parking.source_count }} laporan)</span>
+                  </div>
+                  <div v-else class="text-sm text-slate-400 italic">Belum ada laporan</div>
+                </div>
+                
+                <div v-if="parkingInfo.admin_parking">
+                  <p class="text-[10px] font-bold text-emerald-500 uppercase mb-1">Badge Admin Aktif ✓</p>
+                  <div class="px-3 py-1 bg-emerald-500 text-white rounded-lg text-sm font-black flex items-center gap-2 shadow-sm">
+                    {{ parkingInfo.admin_parking.label_icon }} {{ parkingInfo.admin_parking.label_text }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Verification Form -->
+            <div class="space-y-4">
+              <h4 class="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <ShieldCheck :size="18" class="text-emerald-500" /> Input Verifikasi Admin
+              </h4>
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <button v-for="type in parkingTypes" :key="type.id" 
+                  @click="selectedParkingType = type.id"
+                  class="p-4 rounded-2xl border-2 text-left transition-all flex items-center justify-between"
+                  :class="selectedParkingType === type.id 
+                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+                    : 'border-slate-100 dark:border-slate-700 hover:border-blue-200'">
+                  <div class="flex items-center gap-3">
+                    <span class="text-xl">{{ type.icon }}</span>
+                    <span class="text-sm font-bold" :class="selectedParkingType === type.id ? 'text-blue-700 dark:text-blue-400' : 'text-slate-600 dark:text-slate-400'">{{ type.label }}</span>
+                  </div>
+                  <CheckCircle2 v-if="selectedParkingType === type.id" :size="20" class="text-blue-500" />
+                </button>
+              </div>
+
+              <div>
+                <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Catatan Admin (Opsional)</label>
+                <textarea v-model="adminParkingNotes" placeholder="Contoh: Hasil survey lapangan 9 Mei 2026..." class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 text-sm outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px]"></textarea>
+              </div>
+
+              <div class="flex gap-3 pt-2">
+                <button @click="saveAdminParking" :disabled="isSavingParking" class="flex-1 py-4 bg-emerald-500 text-white font-black rounded-2xl hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-2 disabled:opacity-50">
+                  <RefreshCw v-if="isSavingParking" :size="20" class="animate-spin" />
+                  Simpan Verifikasi Admin
+                </button>
+                <button v-if="parkingInfo.admin_parking" @click="removeAdminParking" :disabled="isSavingParking" class="px-6 py-4 bg-red-50 text-red-600 font-bold rounded-2xl hover:bg-red-100 border border-red-200 transition-all flex items-center justify-center gap-2">
+                  <Trash2 :size="20" />
+                </button>
+              </div>
+            </div>
+
+            <!-- History -->
+            <div v-if="parkingHistory.length > 0" class="pt-6 border-t border-slate-100 dark:border-slate-700">
+              <h4 class="font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                <History :size="18" class="text-slate-400" /> Riwayat Verifikasi Admin
+              </h4>
+              <div class="space-y-3">
+                <div v-for="(log, idx) in parkingHistory" :key="idx" class="flex items-start gap-3 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700/50">
+                  <div class="w-8 h-8 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center shadow-sm shrink-0">
+                    <Info v-if="log.action === 'ADMIN_PARKING_UNVERIFY'" :size="14" class="text-red-500" />
+                    <Check v-else :size="14" class="text-emerald-500" />
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-2 mb-0.5">
+                      <span class="text-xs font-black text-slate-700 dark:text-slate-300">
+                        {{ log.action === 'ADMIN_PARKING_UNVERIFY' ? 'Verifikasi Dihapus' : 'Verifikasi Diperbarui' }}
+                      </span>
+                      <span class="text-[10px] text-slate-400">• {{ formatTime(log.timestamp) }}</span>
+                    </div>
+                    <p class="text-[10px] text-slate-500 font-medium">Oleh: {{ log.admin_email }}</p>
+                    <p v-if="log.parking_type" class="text-[11px] font-bold text-blue-600 mt-1 uppercase tracking-tight">Kategori: {{ log.parking_type.replace('_', ' ') }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div v-else-if="!isSearchingParking" class="py-20 text-center opacity-40">
+            <CircleParking :size="64" class="mx-auto mb-4" />
+            <p class="font-bold">Cari Place ID untuk memulai verifikasi</p>
+          </div>
+        </div>
+      </div>
+
     </main>
 
     <!-- REJECT MODAL -->
@@ -316,19 +430,17 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { 
-  getAdminDashboard, 
-  getModerationQueue, 
-  getApprovedReviews, 
-  getRejectedReviews, 
-  approveReview, 
-  rejectReview, 
   restoreReview, 
-  deletePermanentReviews 
+  deletePermanentReviews,
+  getParkingHistory,
+  verifyParking,
+  removeParkingVerification,
+  fetchPlaceDetails
 } from '../utils/api'
 import { 
   ShieldCheck, AlertCircle, ListChecks, CheckCircle, RefreshCw, Star, XCircle, 
   Eye, X, LayoutDashboard, History, CheckCircle2, Calendar, Check, 
-  Trash2, AlertTriangle, Quote, Clock 
+  Trash2, AlertTriangle, Quote, Clock, CircleParking, Search, Info
 } from 'lucide-vue-next'
 
 const router = useRouter()
@@ -342,6 +454,7 @@ const tabs = [
   { id: 'approved', label: 'Approved', icon: CheckCircle2 },
   { id: 'rejected', label: 'Rejected', icon: XCircle },
   { id: 'permanent_delete', label: 'Hapus Permanen', icon: Trash2 },
+  { id: 'parking', label: 'Verifikasi Parkir', icon: CircleParking },
 ]
 
 // STATE
@@ -353,6 +466,25 @@ const rejectedReviews = ref([])
 const processingId = ref(null)
 const isFetchingApproved = ref(false)
 const filterDate = ref('')
+
+// PARKING VERIFICATION STATE
+const parkingPlaceId = ref('')
+const isSearchingParking = ref(false)
+const parkingInfo = ref(null)
+const selectedParkingType = ref('belum_ada_info')
+const adminParkingNotes = ref('')
+const parkingHistory = ref([])
+const isSavingParking = ref(false)
+
+const parkingTypes = [
+  { id: 'kang_parkir', label: 'Ada Kang Parkir', icon: '🔴', color: 'text-red-500' },
+  { id: 'resmi', label: 'Parkir Resmi', icon: '🟣', color: 'text-indigo-500' },
+  { id: 'bayar', label: 'Parkir Berbayar', icon: '🟠', color: 'text-orange-500' },
+  { id: 'gratis', label: 'Parkir Gratis', icon: '🟢', color: 'text-emerald-500' },
+  { id: 'ada_parkir', label: 'Ada Parkir', icon: '🔵', color: 'text-blue-500' },
+  { id: 'belum_ada_info', label: 'Belum Ada Info', icon: '⚪', color: 'text-slate-400' },
+  { id: 'tidak_ada_parkir', label: 'Tidak Ada Parkir', icon: '❌', color: 'text-gray-500' },
+]
 
 // SELECTION SYSTEM (Permanent Delete)
 const selectedIds = ref([])
@@ -487,6 +619,76 @@ const handlePermanentDelete = async () => {
     fetchData() // Refresh counts
   } catch (e) { showToast(e.message, 'error') }
   finally { isDeleting.value = false }
+}
+
+const searchParkingPlace = async () => {
+  if (!parkingPlaceId.value) return
+  isSearchingParking.value = true
+  parkingInfo.value = null
+  try {
+    const token = authStore.user?.token || ''
+    const [details, history] = await Promise.all([
+      fetchPlaceDetails(parkingPlaceId.value),
+      getParkingHistory(parkingPlaceId.value, token)
+    ])
+    
+    parkingInfo.value = {
+      name: details.name,
+      address: details.formatted_address,
+      ...history
+    }
+    
+    if (history.admin_parking) {
+      selectedParkingType.value = history.admin_parking.parking_type
+      adminParkingNotes.value = history.admin_parking.notes || ''
+    } else {
+      selectedParkingType.value = 'belum_ada_info'
+      adminParkingNotes.value = ''
+    }
+    
+    parkingHistory.value = history.history || []
+  } catch (e) {
+    showToast('Tempat tidak ditemukan atau error', 'error')
+  } finally {
+    isSearchingParking.value = false
+  }
+}
+
+const saveAdminParking = async () => {
+  if (!parkingPlaceId.value) return
+  isSavingParking.value = true
+  try {
+    const token = authStore.user?.token || ''
+    await verifyParking({
+      place_id: parkingPlaceId.value,
+      admin_parking_type: selectedParkingType.value,
+      admin_notes: adminParkingNotes.value
+    }, token)
+    
+    showToast('Verifikasi admin berhasil disimpan', 'success')
+    searchParkingPlace() // Refresh
+  } catch (e) {
+    showToast(e.message, 'error')
+  } finally {
+    isSavingParking.value = false
+  }
+}
+
+const removeAdminParking = async () => {
+  if (!parkingPlaceId.value) return
+  if (!confirm('Hapus verifikasi admin untuk tempat ini?')) return
+  
+  isSavingParking.value = true
+  try {
+    const token = authStore.user?.token || ''
+    await removeParkingVerification(parkingPlaceId.value, token)
+    showToast('Verifikasi admin dihapus', 'success')
+    searchParkingPlace() // Refresh
+  } catch (e) {
+    showToast(e.message, 'error')
+  } finally {
+    isSavingParking.value = false
+  }
 }
 
 // HELPERS

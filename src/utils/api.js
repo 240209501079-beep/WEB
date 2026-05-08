@@ -178,3 +178,24 @@ export const deletePermanentReviews = async (ids, token) => {
     body: JSON.stringify({ review_ids: ids })
   })
 }
+
+export const getParkingHistory = async (placeId, token) => {
+  return await fetchJSON(`${API_BASE_URL}/admin/parking-history/${placeId}`, {
+    headers: getAuthHeaders(token)
+  })
+}
+
+export const verifyParking = async (data, token) => {
+  return await fetchJSON(`${API_BASE_URL}/admin/parking-verify`, {
+    method: 'POST',
+    headers: getAuthHeaders(token),
+    body: JSON.stringify(data)
+  })
+}
+
+export const removeParkingVerification = async (placeId, token) => {
+  return await fetchJSON(`${API_BASE_URL}/admin/parking-verify/${placeId}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(token)
+  })
+}

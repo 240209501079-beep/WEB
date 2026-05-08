@@ -191,16 +191,40 @@
       <!-- TWO COLUMNS (DESKTOP) / STACKED (MOBILE) -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- PARKING INFO -->
-        <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm flex items-start gap-4">
+        <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm flex items-start gap-4 relative overflow-hidden">
+          <!-- ADMIN VERIFIED DECORATION -->
+          <div v-if="aiData.admin_parking" class="absolute top-0 right-0 px-3 py-1 bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest rounded-bl-xl shadow-sm z-10 flex items-center gap-1">
+            <ShieldCheck :size="12" /> Admin Verified
+          </div>
+
           <div class="w-12 h-12 rounded-full flex items-center justify-center shrink-0"
-               :class="aiData.parking_info.parking_sentiment === 'negatif' ? 'bg-red-50 text-red-500' : 'bg-blue-50 text-blue-500'">
+               :class="[
+                 aiData.admin_parking 
+                   ? (aiData.admin_parking.parking_sentiment === 'negatif' ? 'bg-red-50 text-red-500' : 'bg-emerald-50 text-emerald-500')
+                   : (aiData.parking_info.parking_sentiment === 'negatif' ? 'bg-red-50 text-red-500' : 'bg-blue-50 text-blue-500')
+               ]">
             <ParkingCircle :size="24" />
           </div>
           <div>
-            <h4 class="font-bold text-slate-900 dark:text-white mb-1">Informasi Parkir</h4>
+            <h4 class="font-bold text-slate-900 dark:text-white mb-1 flex items-center gap-2">
+              Informasi Parkir
+              <span v-if="aiData.admin_parking" class="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full font-black uppercase">
+                {{ aiData.admin_parking.label_text }}
+              </span>
+            </h4>
             <p class="text-sm text-slate-600 dark:text-slate-400">
-              {{ aiData.parking_info.parking_notes }}
+              {{ aiData.admin_parking ? aiData.admin_parking.notes : aiData.parking_info.parking_notes }}
             </p>
+            
+            <div v-if="aiData.admin_parking" class="mt-3 p-2.5 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/50 rounded-xl">
+              <p class="text-[10px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-widest mb-1 flex items-center gap-1">
+                <Info :size="10" /> Alasan Admin
+              </p>
+              <p class="text-xs text-emerald-800 dark:text-emerald-300 italic">
+                Verified by {{ aiData.admin_parking.verified_by }} on {{ new Date(aiData.admin_parking.verified_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) }}
+              </p>
+            </div>
+
             <!-- SPECIAL NOTE FOR ALFA -->
             <p v-if="isAlfa" class="mt-2 text-[11px] font-bold text-blue-600 dark:text-blue-400 flex items-start gap-1.5 bg-blue-50 dark:bg-blue-900/30 p-2 rounded-lg border border-blue-100 dark:border-blue-800/50">
               <span class="shrink-0 text-lg">📢</span>

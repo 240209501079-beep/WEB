@@ -173,7 +173,26 @@ const parkingLabel = computed(() => {
     return null
   }
 
-  // 1. PRIORITAS UTAMA: Konsensus Komunitas (Jika sudah ada laporannya)
+  // 🔥 PRIORITAS UTAMA: Admin Verified
+  if (info.admin_parking?.source === 'admin') {
+    const colorMap = {
+      kang_parkir: { color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400', icon: '🔴' },
+      resmi: { color: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400', icon: '🟣' },
+      bayar: { color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400', icon: '🟠' },
+      gratis: { color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400', icon: '🟢' },
+      ada_parkir: { color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400', icon: '🔵' },
+      belum_ada_info: { color: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300', icon: '⚪' },
+      tidak_ada_parkir: { color: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400', icon: '❌' }
+    }
+    const style = colorMap[info.admin_parking.parking_type] || colorMap['belum_ada_info']
+    return {
+      text: `${info.admin_parking.label_text} (✓ Admin Verified)`,
+      color: `${style.color} border-2 font-black`,
+      icon: style.icon
+    }
+  }
+
+  // 👥 PRIORITAS KEDUA: Konsensus Komunitas (Jika sudah ada laporannya)
   if (info.source_count > 0 && info.dominant_type) {
     const colorMap = {
       kang_parkir: { color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400', icon: '🔴' },
