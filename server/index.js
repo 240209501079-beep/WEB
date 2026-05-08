@@ -38,7 +38,7 @@ app.use(cors({
     // Izinkan jika tidak ada origin (seperti mobile app atau curl) 
     // atau jika origin cocok dengan daftar allowedOrigins
     if (!origin) return callback(null, true)
-    
+
     const isAllowed = allowedOrigins.some(pattern => {
       if (pattern instanceof RegExp) return pattern.test(origin)
       return pattern === origin
@@ -116,7 +116,7 @@ async function getPlaceDetailsWithCache(placeId) {
     if (doc.exists) {
       const data = doc.data()
       const cachedAt = data.cached_at ? new Date(data.cached_at).getTime() : 0
-      
+
       if (now - cachedAt < CACHE_DURATION_MS) {
         console.log(`[Cache Hit] Returning cached details for: ${placeId}`)
         return data.result
@@ -126,14 +126,14 @@ async function getPlaceDetailsWithCache(placeId) {
 
     // Call real API
     const result = await getPlaceDetails(placeId)
-    
+
     // Save to cache
     await cacheRef.set({
       place_id: placeId,
       result: result,
       cached_at: new Date().toISOString()
     })
-    
+
     console.log(`[Cache Miss] Saved new details for: ${placeId}`)
     return result
   } catch (error) {
@@ -154,15 +154,15 @@ app.get('/api/places/nearby', async (req, res) => {
     const { lat, lng, radius, type } = req.query
     const rRadius = parseInt(radius) || 5000
     const rType = type || 'restaurant'
-    
+
     // Create a cache key based on a 1km grid (2 decimal places)
     const latGrid = parseFloat(lat).toFixed(2)
     const lngGrid = parseFloat(lng).toFixed(2)
     const cacheKey = `nearby_${latGrid}_${lngGrid}_${rRadius}_${rType}`
-    
+
     const cacheRef = db.collection('places_search_cache').doc(cacheKey)
     const cacheDoc = await cacheRef.get()
-    
+
     if (cacheDoc.exists) {
       const data = cacheDoc.data()
       const cachedAt = data.cached_at ? new Date(data.cached_at).getTime() : 0
@@ -173,18 +173,18 @@ app.get('/api/places/nearby', async (req, res) => {
     }
 
     const places = await searchNearby(
-      parseFloat(lat), 
-      parseFloat(lng), 
-      rRadius, 
+      parseFloat(lat),
+      parseFloat(lng),
+      rRadius,
       rType
     )
-    
+
     // Save to cache
     await cacheRef.set({
       results: places,
       cached_at: new Date().toISOString()
     })
-    
+
     res.json({ results: places })
   } catch (error) {
     console.error('Error fetching nearby places:', error)
@@ -209,16 +209,16 @@ app.get('/api/places/details/:placeId', async (req, res) => {
 app.get('/api/places/search', async (req, res) => {
   try {
     const { query, lat, lng } = req.query
-    
+
     // Cache Check First
     const latGrid = parseFloat(lat || 0).toFixed(2)
     const lngGrid = parseFloat(lng || 0).toFixed(2)
     const sanitizedQuery = (query || '').toLowerCase().trim().replace(/[^a-z0-t0-9]/g, '_')
     const cacheKey = `search_${sanitizedQuery}_${latGrid}_${lngGrid}`
-    
+
     const cacheRef = db.collection('places_search_cache').doc(cacheKey)
     const cacheDoc = await cacheRef.get()
-    
+
     if (cacheDoc.exists) {
       const data = cacheDoc.data()
       const cachedAt = data.cached_at ? new Date(data.cached_at).getTime() : 0
@@ -244,13 +244,13 @@ app.get('/api/places/search', async (req, res) => {
     }
 
     const results = await searchByText(finalQuery, parseFloat(lat), parseFloat(lng), extraParams)
-    
+
     // Save to cache
     await cacheRef.set({
       results: results,
       cached_at: new Date().toISOString()
     })
-    
+
     res.json({ results })
   } catch (error) {
     console.error('Error searching places:', error)
@@ -263,15 +263,15 @@ app.get('/api/places/search', async (req, res) => {
 app.get('/api/places/reverse-geocode', async (req, res) => {
   try {
     const { lat, lng } = req.query
-    
+
     // Cache Check
     const latGrid = parseFloat(lat).toFixed(2)
     const lngGrid = parseFloat(lng).toFixed(2)
     const cacheKey = `geo_${latGrid}_${lngGrid}`
-    
+
     const cacheRef = db.collection('places_search_cache').doc(cacheKey)
     const cacheDoc = await cacheRef.get()
-    
+
     if (cacheDoc.exists) {
       const data = cacheDoc.data()
       const cachedAt = data.cached_at ? new Date(data.cached_at).getTime() : 0
@@ -282,13 +282,13 @@ app.get('/api/places/reverse-geocode', async (req, res) => {
     }
 
     const address = await reverseGeocode(parseFloat(lat), parseFloat(lng))
-    
+
     // Save to cache
     await cacheRef.set({
       address: address,
       cached_at: new Date().toISOString()
     })
-    
+
     res.json({ address })
   } catch (error) {
     console.error('Error reverse geocoding:', error)
@@ -305,7 +305,7 @@ app.get('/api/places/reverse-geocode', async (req, res) => {
 app.post('/api/analyze', async (req, res) => {
   try {
     const { place_id, user_lat, user_lng, name, reviews, place_lat, place_lng } = req.body
-    
+
     // 🔥 NEW: Check for existing analysis in cache first
     if (place_id) {
       try {
@@ -314,10 +314,10 @@ app.post('/api/analyze', async (req, res) => {
         if (doc.exists) {
           const data = doc.data()
           const analyzedAt = data.analyzed_at ? new Date(data.analyzed_at).getTime() : 0
-          
+
           // Smart Validation: Jika cache masih dalam durasi tapi data KRITIKAL (red_flag/location_data) hilang, paksa re-analyze
           const isDataComplete = data.red_flag !== undefined && data.location_data !== undefined
-          
+
           if (Date.now() - analyzedAt < CACHE_DURATION_MS && isDataComplete) {
             console.log(`[Cache Hit] Returning cached analysis for: ${place_id}`)
             return res.json(data)
@@ -337,18 +337,18 @@ app.post('/api/analyze', async (req, res) => {
     if (place_id) {
       console.log(`[Backend] Analyzing place via ID: ${place_id}`)
       const details = await getPlaceDetailsWithCache(place_id)
-      
+
       // Ambil review Google (maks 5)
 
       const googleReviews = details.reviews?.map(r => r.text) || []
-      
+
       // 🔥 BARU: Ambil SEMUA ulasan internal dari database LokaLens
       let internalReviews = []
       try {
         const snapshot = await db.collection('reviews_private')
           .where('place_id', '==', place_id)
           .get()
-        
+
         snapshot.forEach(doc => {
           const data = doc.data()
           if (data.review_text) {
@@ -381,13 +381,15 @@ app.post('/api/analyze', async (req, res) => {
     } else {
       // ... manual input logic
     }
-    
+
     // 2. Kirim ke Gemini untuk analisis
     const analysisResult = await analyzePlace({
       ...placeData,
       user_lat,
       user_lng
     })
+
+    //
 
     // Tambahkan stats ke hasil akhir sebelum dikirim ke frontend
     const finalResult = {
@@ -455,7 +457,7 @@ app.post('/api/analyze', async (req, res) => {
 app.get('/api/places/parking-batch', async (req, res) => {
   try {
     const placeIds = (req.query.place_ids || '').split(',').map(s => s.trim()).filter(Boolean)
-    
+
     if (placeIds.length === 0) return res.json({})
 
     const parkingData = {}
@@ -476,13 +478,13 @@ app.get('/api/places/parking-batch', async (req, res) => {
           source_count: data.parking_info?.source_count || 0,
           label_text: data.parking_info?.label_text || null,
           label_icon: data.parking_info?.label_icon || null,
-          
+
           // Data AI (Fallback)
           has_informal_attendant: data.parking_info?.has_informal_attendant || false,
           is_paid: data.parking_info?.is_paid_parking || data.parking_info?.paid_parking || false,
           is_free: data.parking_info?.is_free_parking || false,
           is_official: data.parking_info?.is_official_parking || false,
-          
+
           notes: data.parking_info?.parking_notes || null,
           analyzed: true
         }
@@ -510,7 +512,7 @@ app.post('/api/reviews-private', async (req, res) => {
   if (!rating || rating < 1.0 || rating > 5.0) {
     return res.status(400).json({ error: 'Rating wajib antara 1.0 sampai 5.0' })
   }
-  
+
   if (!review_text || review_text.length < 10) {
     return res.status(400).json({ error: 'Review text minimal 10 karakter' })
   }
@@ -539,17 +541,17 @@ app.post('/api/reviews-private', async (req, res) => {
 
     // 🔥 AUTO-UPDATE places_analysis dengan Dominant Type
     const analysisRef = db.collection('places_analysis').doc(place_id)
-    
+
     // Ambil semua review untuk place ini
     const reviewsSnapshot = await db.collection('reviews_private')
       .where('place_id', '==', place_id)
       .where('status', '==', 'approved')
       .get()
-    
+
     // Hitung per kategori
     const counts = { kang_parkir: 0, resmi: 0, bayar: 0, gratis: 0, ada_parkir: 0, total: 0 }
     const notesList = []
-    
+
     reviewsSnapshot.forEach(doc => {
       const data = doc.data()
       if (counts[data.parking_type] !== undefined) {
@@ -558,7 +560,7 @@ app.post('/api/reviews-private', async (req, res) => {
       }
       if (data.parking_notes) notesList.push(data.parking_notes)
     })
-    
+
     // Tentukan status parkir dominan
     let dominantType = 'belum_ada_info'
     let dominantCount = 0
@@ -568,7 +570,7 @@ app.post('/api/reviews-private', async (req, res) => {
         dominantCount = count
       }
     })
-    
+
     const parkingLabels = {
       kang_parkir: { text: 'Ada Kang Parkir ⚠️', icon: '🔴', sentiment: 'negatif' },
       resmi: { text: 'Parkir Resmi ✅', icon: '🟣', sentiment: 'positif' },
@@ -577,9 +579,9 @@ app.post('/api/reviews-private', async (req, res) => {
       ada_parkir: { text: 'Ada Parkir', icon: '🔵', sentiment: 'netral' },
       belum_ada_info: { text: 'Belum Ada Info', icon: '⚪', sentiment: 'netral' }
     }
-    
+
     const label = parkingLabels[dominantType]
-    
+
     await analysisRef.set({
       place_id,
       parking_info: {
@@ -628,9 +630,9 @@ app.get('/api/reviews-private/user/:uid', async (req, res) => {
     console.error('Error fetching user reviews:', error)
     // Sometimes Firestore requires an index for orderBy and where together
     if (error.message && error.message.includes('index')) {
-       res.status(500).json({ error: 'Firestore index required. Check server logs for the URL to create it.' })
+      res.status(500).json({ error: 'Firestore index required. Check server logs for the URL to create it.' })
     } else {
-       res.status(500).json({ error: 'Gagal mengambil riwayat review' })
+      res.status(500).json({ error: 'Gagal mengambil riwayat review' })
     }
   }
 })
@@ -693,9 +695,9 @@ app.get('/api/admin/data-quality', adminAuth, async (req, res) => {
   } catch (error) {
     console.error('Error fetching data-quality:', error)
     if (error.message && error.message.includes('index')) {
-       res.status(500).json({ error: 'Firestore index required for status + created_at. Check server console for URL.' })
+      res.status(500).json({ error: 'Firestore index required for status + created_at. Check server console for URL.' })
     } else {
-       res.status(500).json({ error: 'Gagal mengambil antrean moderasi' })
+      res.status(500).json({ error: 'Gagal mengambil antrean moderasi' })
     }
   }
 })
@@ -817,7 +819,7 @@ app.post('/api/admin/users/:uid/ban', adminAuth, async (req, res) => {
       banned: true,
       banned_at: new Date().toISOString()
     }, { merge: true })
-    
+
     // Revoke sessions
     await auth.revokeRefreshTokens(uid)
     res.json({ message: `User ${uid} banned successfully.` })
@@ -838,7 +840,7 @@ app.get('/api/admin/dashboard', adminAuth, async (req, res) => {
 
     // Get today's start ISO string
     const today = new Date()
-    today.setHours(0,0,0,0)
+    today.setHours(0, 0, 0, 0)
 
     const todaySnap = await db.collection('reviews_private')
       .where('created_at', '>=', today.toISOString())
@@ -854,9 +856,9 @@ app.get('/api/admin/dashboard', adminAuth, async (req, res) => {
   } catch (error) {
     console.error('Error fetching dashboard stats:', error)
     if (error.message && error.message.includes('index')) {
-       res.status(500).json({ error: 'Firestore index required for created_at. Check server console for URL.' })
+      res.status(500).json({ error: 'Firestore index required for created_at. Check server console for URL.' })
     } else {
-       res.status(500).json({ error: 'Gagal mengambil statistik dashboard' })
+      res.status(500).json({ error: 'Gagal mengambil statistik dashboard' })
     }
   }
 })
@@ -878,7 +880,7 @@ app.delete('/api/user/data', verifyToken, async (req, res) => {
     }
 
     // Also remove any user document
-    await db.collection('users').doc(uid).delete().catch(() => {})
+    await db.collection('users').doc(uid).delete().catch(() => { })
 
     res.json({
       message: `Semua data untuk user ${uid} telah dihapus secara permanen.`,

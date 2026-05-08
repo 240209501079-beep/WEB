@@ -5,8 +5,8 @@ dotenv.config()
 
 if (!admin.apps.length) {
   // Parsing private key to handle newline characters properly
-  const privateKey = process.env.FIREBASE_PRIVATE_KEY 
-    ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n') 
+  const privateKey = process.env.FIREBASE_PRIVATE_KEY
+    ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
     : undefined
 
   try {
@@ -22,6 +22,6 @@ if (!admin.apps.length) {
     console.error('Firebase Admin SDK initialization error:', error.stack)
   }
 }
-
+//
 export const db = admin.firestore()
 export const auth = admin.auth()

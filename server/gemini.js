@@ -209,6 +209,7 @@ export const analyzePlace = async (placeInput, retries = 3, delayMs = 1000) => {
       result.tag_colors.push(validColors[result.tag_colors.length % validColors.length])
     }
 
+    //
     // 🔥 RED FLAG FALLBACK (If Gemini misses it but reviews contain clear negatives)
     if (!result.red_flag && placeInput.reviews?.length > 0) {
       const negativeKeywords = [
@@ -219,7 +220,7 @@ export const analyzePlace = async (placeInput, retries = 3, delayMs = 1000) => {
         { word: 'lambat', label: 'Pelayanan cenderung lambat' },
         { word: 'kotor', label: 'Kebersihan tempat kurang terjaga' }
       ]
-      
+
       const allReviews = placeInput.reviews.join(' ').toLowerCase()
       const match = negativeKeywords.find(k => allReviews.includes(k.word))
       if (match) {
