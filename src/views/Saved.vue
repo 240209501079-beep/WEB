@@ -47,8 +47,8 @@
         </transition>
 
         <!-- LOADING -->
-        <div v-if="!savedStore.isLoaded" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <PlaceCard v-for="i in 3" :key="i" :loading="true" />
+        <div v-if="!savedStore.isLoaded" class="flex flex-wrap justify-start gap-6">
+          <PlaceCard v-for="i in 3" :key="i" :loading="true" class="w-full sm:w-72 md:w-80" />
         </div>
 
         <!-- EMPTY STATE -->
@@ -62,8 +62,8 @@
         </div>
 
         <!-- RESULTS GRID -->
-        <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 pb-6 animate-fade-in">
-          <div v-for="place in savedStore.savedPlaces" :key="place.id">
+        <div v-else class="flex flex-wrap justify-start gap-6 pb-6 animate-fade-in">
+          <div v-for="place in savedStore.savedPlaces" :key="place.id" class="w-full sm:w-72 md:w-80">
             <PlaceCard :place="place" :parkingInfo="parkingData[place.id] || parkingData[place.place_id]" :loading="false" @save="handleSave" />
           </div>
         </div>

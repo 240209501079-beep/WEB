@@ -75,12 +75,12 @@ export const analyzePlace = async (placeInputData) => {
 // ==========================
 
 export const submitPrivateReview = async (
-  placeId, 
-  rating, 
-  reviewText, 
-  parkingType, 
-  parkingNotes = null, 
-  photo = null, 
+  placeId,
+  rating,
+  reviewText,
+  parkingType,
+  parkingNotes = null,
+  photo = null,
   userId = 'anon_user'
 ) => {
   return await fetchJSON(`${API_BASE_URL}/reviews-private`, {

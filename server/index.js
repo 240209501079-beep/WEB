@@ -330,6 +330,29 @@ app.post('/api/analyze', async (req, res) => {
 
           if (Date.now() - analyzedAt < CACHE_DURATION_MS && isDataComplete) {
             console.log(`[Cache Hit] Returning cached analysis for: ${place_id}`)
+            
+            // 🔥 NEW: Fetch anonymized history if admin_parking exists
+            let history = []
+            if (data.admin_parking) {
+              try {
+                const historySnap = await db.collection('security-log')
+                  .where('place_id', '==', place_id)
+                  .where('action', 'in', ['ADMIN_PARKING_VERIFY', 'ADMIN_PARKING_UNVERIFY'])
+                  .orderBy('timestamp', 'desc')
+                  .limit(5)
+                  .get()
+                
+                historySnap.forEach(h => {
+                  const hData = h.data()
+                  history.push({
+                    action: hData.action,
+                    timestamp: hData.timestamp,
+                    parking_type: hData.parking_type
+                  })
+                })
+              } catch (e) { console.warn('Failed to fetch history for cache hit:', e.message) }
+            }
+
             // 🔥 Normalize response: Pastikan frontend selalu menerima field yang konsisten
             return res.json({
               ...data,
@@ -339,7 +362,8 @@ app.post('/api/analyze', async (req, res) => {
               tags: data.tags || [],
               tag_colors: data.tag_colors || [],
               community_updates: data.community_updates || [],
-              review_stats: data.review_stats || { google_count: 0, lokalens_count: 0, total_google_all: 0 }
+              review_stats: data.review_stats || { google_count: 0, lokalens_count: 0, total_google_all: 0 },
+              parking_history: history // Include history
             })
           }
           console.log(`[Cache Stale/Incomplete] Re-analyzing... (Complete: ${isDataComplete})`)
@@ -464,7 +488,32 @@ app.post('/api/analyze', async (req, res) => {
       }
     }
 
-    res.json(finalResult)
+    // 🔥 NEW: Fetch anonymized history for fresh analysis
+    let history = []
+    if (place_id) {
+      try {
+        const historySnap = await db.collection('security-log')
+          .where('place_id', '==', place_id)
+          .where('action', 'in', ['ADMIN_PARKING_VERIFY', 'ADMIN_PARKING_UNVERIFY'])
+          .orderBy('timestamp', 'desc')
+          .limit(5)
+          .get()
+        
+        historySnap.forEach(h => {
+          const hData = h.data()
+          history.push({
+            action: hData.action,
+            timestamp: hData.timestamp,
+            parking_type: hData.parking_type
+          })
+        })
+      } catch (e) { console.warn('Failed to fetch history for fresh analysis:', e.message) }
+    }
+
+    res.json({
+      ...finalResult,
+      parking_history: history
+    })
   } catch (error) {
     console.error('API /analyze Error:', error)
     res.status(500).json({ error: error.message || 'Failed to analyze place' })
@@ -504,7 +553,14 @@ app.get('/api/places/parking-batch', async (req, res) => {
           is_official: data.parking_info?.is_official_parking || false,
 
           notes: data.parking_info?.parking_notes || null,
-          analyzed: true
+          analyzed: true,
+          
+          // 🔥 BARU: Sertakan data verifikasi admin agar badge muncul di card
+          admin_parking: data.admin_parking ? {
+            parking_type: data.admin_parking.parking_type,
+            label_text: data.admin_parking.label_text,
+            source: 'admin'
+          } : null
         }
       })
     }

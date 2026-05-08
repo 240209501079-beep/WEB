@@ -216,13 +216,26 @@
               {{ aiData.admin_parking ? aiData.admin_parking.notes : aiData.parking_info.parking_notes }}
             </p>
             
-            <div v-if="aiData.admin_parking" class="mt-3 p-2.5 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/50 rounded-xl">
-              <p class="text-[10px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-widest mb-1 flex items-center gap-1">
-                <Info :size="10" /> Alasan Admin
+            <div v-if="aiData.admin_parking" class="mt-3 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/50 rounded-2xl">
+              <p class="text-[10px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                <ShieldCheck :size="12" /> Riwayat Verifikasi Admin
               </p>
-              <p class="text-xs text-emerald-800 dark:text-emerald-300 italic">
-                Verified by {{ aiData.admin_parking.verified_by }} on {{ new Date(aiData.admin_parking.verified_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) }}
-              </p>
+              
+              <div v-if="aiData.parking_history && aiData.parking_history.length > 0" class="space-y-3">
+                <div v-for="(log, idx) in aiData.parking_history" :key="idx" class="flex gap-3">
+                  <div class="shrink-0 w-1.5 h-1.5 rounded-full mt-1.5" :class="log.action === 'ADMIN_PARKING_UNVERIFY' ? 'bg-red-400' : 'bg-emerald-400'"></div>
+                  <div>
+                    <p class="text-xs font-bold text-slate-800 dark:text-slate-200">
+                      {{ log.action === 'ADMIN_PARKING_UNVERIFY' ? 'Lencana Dihapus' : 'Lencana Diperbarui' }}
+                      <span v-if="log.parking_type" class="text-[10px] text-emerald-600 dark:text-emerald-400 ml-1 font-black uppercase">
+                        ({{ log.parking_type.replace('_', ' ') }})
+                      </span>
+                    </p>
+                    <p class="text-[10px] text-slate-400 font-medium">{{ new Date(log.timestamp).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) }}</p>
+                  </div>
+                </div>
+              </div>
+              <div v-else class="text-[10px] text-slate-400 italic">Data riwayat sedang disinkronkan...</div>
             </div>
 
             <!-- SPECIAL NOTE FOR ALFA -->

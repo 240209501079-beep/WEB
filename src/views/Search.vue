@@ -62,16 +62,16 @@
       </div>
 
       <!-- RESULTS GRID -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 pb-6">
+      <div class="flex flex-wrap justify-center gap-6 pb-6 animate-fade-in">
         <!-- Skeleton State -->
         <template v-if="isLoading">
-          <div v-for="i in 6" :key="i">
+          <div v-for="i in 4" :key="i" class="w-full sm:w-72 md:w-80">
             <PlaceCard loading />
           </div>
         </template>
         <!-- Data State -->
         <template v-else>
-          <div v-for="place in searchResults" :key="place.id || place.place_id">
+          <div v-for="place in searchResults" :key="place.id || place.place_id" class="w-full sm:w-72 md:w-80">
             <PlaceCard :place="place" :parkingInfo="parkingData[place.id] || parkingData[place.place_id]" @save="handleSave" />
           </div>
         </template>
