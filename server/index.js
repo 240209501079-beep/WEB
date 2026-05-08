@@ -314,11 +314,15 @@ app.post('/api/analyze', async (req, res) => {
         if (doc.exists) {
           const data = doc.data()
           const analyzedAt = data.analyzed_at ? new Date(data.analyzed_at).getTime() : 0
-          if (Date.now() - analyzedAt < CACHE_DURATION_MS) {
+          
+          // Smart Validation: Jika cache masih dalam durasi tapi data KRITIKAL (red_flag/location_data) hilang, paksa re-analyze
+          const isDataComplete = data.red_flag !== undefined && data.location_data !== undefined
+          
+          if (Date.now() - analyzedAt < CACHE_DURATION_MS && isDataComplete) {
             console.log(`[Cache Hit] Returning cached analysis for: ${place_id}`)
             return res.json(data)
           }
-          console.log(`[Cache Stale] Refreshing analysis for: ${place_id}`)
+          console.log(`[Cache Miss/Incomplete] Refreshing analysis for: ${place_id}`)
         }
       } catch (cacheErr) {
         console.warn('[Cache Error] Failed to read from places_analysis:', cacheErr.message)
@@ -421,8 +425,16 @@ app.post('/api/analyze', async (req, res) => {
           tags: analysisResult.tags || [],
           tag_colors: analysisResult.tag_colors || [],
           community_updates: analysisResult.community_updates || [],
-          location_data: analysisResult.location_data || null, // FIX: Save location data to cache
-          review_stats: placeData.review_stats, // 🔥 Simpan stats ke cache
+          location_data: analysisResult.location_data || null,
+          red_flag: analysisResult.red_flag || null, // FIX: Save red flag to cache
+          vibes: analysisResult.vibes || null, // FIX: Save vibes to cache
+          score_overall: analysisResult.score_overall || null,
+          score_taste: analysisResult.score_taste || null,
+          score_service: analysisResult.score_service || null,
+          score_value: analysisResult.score_value || null,
+          worth_it: analysisResult.worth_it ?? null,
+          hidden_gem: analysisResult.hidden_gem ?? null,
+          review_stats: placeData.review_stats,
           analyzed_at: new Date().toISOString()
         }, { merge: true })
         console.log(`[Firestore] Cached analysis for place_id: ${place_id}`)
