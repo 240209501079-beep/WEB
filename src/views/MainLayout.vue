@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-background-light dark:bg-background-dark flex">
+  <div class="min-h-screen bg-background-light dark:bg-background-dark flex flex-col md:flex-row overflow-x-hidden">
     
     <!-- DESKTOP SIDEBAR (>= 768px) -->
     <aside class="hidden md:flex flex-col fixed inset-y-0 left-0 w-16 hover:w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transition-all duration-300 z-40 group overflow-hidden shadow-xl">
@@ -21,14 +21,14 @@
     </aside>
 
     <!-- MAIN CONTENT — sidebar stays mounted, only this div re-renders -->
-    <main class="flex-1 pb-20 md:pb-0 md:ml-16 transition-all duration-300">
+    <main class="flex-1 min-w-0 pb-20 md:pb-0 md:ml-16 transition-all duration-300 relative">
       <div :key="$route.fullPath">
         <router-view />
       </div>
     </main>
 
     <!-- BOTTOM NAVIGATION BAR (< 768px) -->
-    <nav class="md:hidden fixed bottom-0 w-full bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 pb-[env(safe-area-inset-bottom)] z-40 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)]">
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 w-full bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 pb-[env(safe-area-inset-bottom)] z-40 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)]">
       <div class="flex justify-around items-center h-16">
         <router-link v-for="item in navItems" :key="item.path" :to="item.path"
           class="flex flex-col items-center justify-center w-full h-full transition-colors relative"

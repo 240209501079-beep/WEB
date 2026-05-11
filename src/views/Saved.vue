@@ -1,6 +1,7 @@
 <template>
-  <div class="min-h-screen bg-background-light dark:bg-background-dark pb-20 md:pb-8 pt-4 md:pt-8">
-    <div class="px-4 md:px-8">
+  <div class="h-screen w-full max-w-full overflow-hidden bg-background-light dark:bg-background-dark flex flex-col">
+    <div class="flex-1 overflow-y-auto overflow-x-hidden px-4 md:px-8 pb-32 pt-4 md:pt-8">
+      <div class="max-w-7xl mx-auto">
 
       <!-- HEADER -->
       <h1 class="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-2">Tersimpan</h1>
@@ -70,6 +71,7 @@
 
       </template>
 
+      </div>
     </div>
 
     <!-- GLOBAL TOAST -->

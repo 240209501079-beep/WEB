@@ -1,6 +1,7 @@
 <template>
-  <div class="min-h-screen bg-background-light dark:bg-background-dark pb-24 pt-4 md:pt-8 md:pb-8">
-    <div class="max-w-2xl mx-auto px-4 md:px-8">
+  <div class="h-screen w-full max-w-full overflow-hidden bg-background-light dark:bg-background-dark flex flex-col">
+    <div class="flex-1 overflow-y-auto overflow-x-hidden px-4 md:px-8 pb-32 pt-4 md:pt-8">
+      <div class="max-w-2xl mx-auto">
       
       <!-- HEADER / USER INFO -->
       <div v-if="authStore.isAuthenticated" class="flex flex-col md:flex-row items-center md:items-start gap-4 mb-8">
@@ -252,8 +253,8 @@
         <p class="text-center text-[10px] text-slate-400 mt-3">Sesuai dengan kebijakan privasi dan GDPR, Anda berhak menghapus semua data jejak review secara permanen kapan saja.</p>
       </section>
 
+      </div>
     </div>
-  </div>
 
   <!-- ====== TOAST NOTIFICATION ====== -->
   <transition name="toast-slide">
