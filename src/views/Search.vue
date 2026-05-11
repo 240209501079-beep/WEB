@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-background-light dark:bg-background-dark pb-20 md:pb-8 pt-4 md:pt-8"
+  <div class="min-h-screen w-full max-w-full overflow-x-hidden bg-background-light dark:bg-background-dark pb-20 md:pb-8 pt-4 md:pt-8"
        @touchstart="handleTouchStart" @touchmove="handleTouchMove" @touchend="handleTouchEnd">
     
     <!-- PULL TO REFRESH INDICATOR -->
@@ -11,7 +11,7 @@
       </div>
     </div>
 
-    <div class="px-4 md:px-8">
+    <div class="px-4 md:px-8 max-w-7xl mx-auto">
       <!-- HEADER -->
       <h1 class="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-6">Cari Tempat</h1>
 
@@ -62,16 +62,16 @@
       </div>
 
       <!-- RESULTS GRID -->
-      <div class="flex flex-wrap justify-center gap-6 pb-6 animate-fade-in">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-6 animate-fade-in justify-items-center">
         <!-- Skeleton State -->
         <template v-if="isLoading">
-          <div v-for="i in 4" :key="i" class="w-full sm:w-72 md:w-80">
+          <div v-for="i in 4" :key="i" class="w-full max-w-sm sm:w-auto">
             <PlaceCard loading />
           </div>
         </template>
         <!-- Data State -->
         <template v-else>
-          <div v-for="place in searchResults" :key="place.id || place.place_id" class="w-full sm:w-72 md:w-80">
+          <div v-for="place in searchResults" :key="place.id || place.place_id" class="w-full max-w-sm sm:w-auto">
             <PlaceCard :place="place" :parkingInfo="parkingData[place.id] || parkingData[place.place_id]" @save="handleSave" />
           </div>
         </template>

@@ -102,26 +102,34 @@
       </div>
       
       <!-- TAB: TRENDING ONLY -->
-      <div v-else-if="activeTab === 'trending'" class="flex flex-wrap justify-center gap-4 pb-8">
-        <PlaceCard v-for="place in trendingPlaces" :key="place.id || place.place_id" :place="place" :parkingInfo="parkingData[place.id] || parkingData[place.place_id]" @save="handleSave" class="w-72 md:w-80" />
+      <div v-else-if="activeTab === 'trending'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-8 animate-fade-in justify-items-center">
+        <div v-for="place in trendingPlaces" :key="place.id || place.place_id" class="w-full max-w-sm sm:w-auto">
+          <PlaceCard :place="place" :parkingInfo="parkingData[place.id] || parkingData[place.place_id]" @save="handleSave" />
+        </div>
       </div>
       
       <!-- TAB: HIDDEN GEMS ONLY -->
-      <div v-else-if="activeTab === 'hidden'" class="flex flex-wrap justify-center gap-4 pb-8">
-        <PlaceCard v-for="place in hiddenGems" :key="place.id || place.place_id" :place="place" :parkingInfo="parkingData[place.id] || parkingData[place.place_id]" @save="handleSave" class="w-72 md:w-80" />
+      <div v-else-if="activeTab === 'hidden'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-8 animate-fade-in justify-items-center">
+        <div v-for="place in hiddenGems" :key="place.id || place.place_id" class="w-full max-w-sm sm:w-auto">
+          <PlaceCard :place="place" :parkingInfo="parkingData[place.id] || parkingData[place.place_id]" @save="handleSave" />
+        </div>
       </div>
       
       <!-- TAB: MART ONLY -->
-      <div v-else-if="activeTab === 'mart'" class="flex flex-wrap justify-center gap-4 pb-8">
-        <PlaceCard v-for="mart in nearbyMarts" :key="mart.id || mart.place_id" :place="mart" :parkingInfo="parkingData[mart.id] || parkingData[mart.place_id]" @save="handleSave" class="w-72 md:w-80" />
+      <div v-else-if="activeTab === 'mart'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-8 animate-fade-in justify-items-center">
+        <div v-for="mart in nearbyMarts" :key="mart.id || mart.place_id" class="w-full max-w-sm sm:w-auto">
+          <PlaceCard :place="mart" :parkingInfo="parkingData[mart.id] || parkingData[mart.place_id]" @save="handleSave" />
+        </div>
       </div>
 
       <!-- TAB: FOOD ONLY -->
-      <div v-else-if="activeTab === 'food'" class="flex flex-wrap justify-center gap-4 pb-8">
-        <div v-if="foodPlaces.length === 0 && !isLoading" class="w-full py-12 text-center text-slate-400">
+      <div v-else-if="activeTab === 'food'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-8 animate-fade-in justify-items-center">
+        <div v-if="foodPlaces.length === 0 && !isLoading" class="col-span-full py-12 text-center text-slate-400">
           Belum ada rekomendasi makanan di sekitar sini.
         </div>
-        <PlaceCard v-for="place in foodPlaces" :key="place.id || place.place_id" :place="place" :parkingInfo="parkingData[place.id] || parkingData[place.place_id]" @save="handleSave" class="w-72 md:w-80" />
+        <div v-for="place in foodPlaces" :key="place.id || place.place_id" class="w-full max-w-sm sm:w-auto">
+          <PlaceCard :place="place" :parkingInfo="parkingData[place.id] || parkingData[place.place_id]" @save="handleSave" />
+        </div>
       </div>
 
     </div>
