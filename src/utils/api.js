@@ -10,21 +10,42 @@ export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://lokalens-ba
  */
 async function fetchJSON(url, options = {}) {
   console.log('🚀 Fetching:', url)
-  const response = await fetch(url, options)
-  const text = await response.text()
-
   try {
-    const data = JSON.parse(text)
-    if (!response.ok) {
-      throw new Error(data.error || `Server error: ${response.status}`)
+    const response = await fetch(url, options)
+    const text = await response.text()
+
+    // Specific Status Handling
+    if (response.status === 429) {
+      throw new Error('Terlalu banyak permintaan (Rate Limit). Tunggu sebentar (15 menit) sebelum mencoba lagi.')
     }
-    return data
+
+    if (response.status === 403) {
+      throw new Error('Akses ditolak (Forbidden). Pastikan Anda memiliki izin yang benar.')
+    }
+
+    try {
+      const data = JSON.parse(text)
+      if (!response.ok) {
+        throw new Error(data.error || data.message || `Server error: ${response.status}`)
+      }
+      return data
+    } catch (e) {
+      // If it's a parse error, check if it's actually HTML (server error page)
+      if (text.includes('<!doctype html>') || text.includes('<html>')) {
+        console.error('Backend HTML response:', text.substring(0, 500))
+        throw new Error('Backend sedang bermasalah atau sedang restart. Silakan refresh halaman dalam beberapa saat.')
+      }
+      // Re-throw if it's already our custom error
+      if (e.message.includes('Server error') || e.message.includes('Rate Limit')) throw e
+      
+      throw new Error(text || `Error ${response.status}: Respon server tidak valid`)
+    }
   } catch (e) {
-    if (text.includes('<!doctype html>') || text.includes('<html>')) {
-      console.error('Expected JSON but received HTML. Possible backend 404 or server error:', text.substring(0, 500))
-      throw new Error('Server returned HTML instead of JSON. Pastikan backend (node server/index.js) sedang berjalan di port 3000.')
+    // Network errors (CORS block, server down, etc.)
+    if (e.message === 'Failed to fetch' || e.message.includes('NetworkError')) {
+      throw new Error('Gagal terhubung ke server. Periksa koneksi internet atau pastikan backend sedang berjalan.')
     }
-    throw new Error(text || 'Invalid server response')
+    throw e
   }
 }
 

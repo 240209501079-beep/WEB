@@ -345,7 +345,7 @@ const fetchLocationAndPlaces = async () => {
     }
   } catch (error) {
     console.error('Failed to load dashboard data:', error)
-    showToast('Gagal memuat data real. Pastikan izin lokasi aktif.', 'error')
+    showToast(error.message || 'Gagal memuat data. Periksa koneksi Anda.', 'error')
     locationName.value = 'Makassar, Indonesia'
     locationStatus.value = 'error'
   } finally {

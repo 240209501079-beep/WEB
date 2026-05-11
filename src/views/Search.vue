@@ -279,6 +279,7 @@ const performSearch = async () => {
   } catch (e) {
     console.error('Search API failed:', e)
     hasError.value = true
+    showToast(e.message || 'Gagal melakukan pencarian. Periksa koneksi Anda.', 'error')
   } finally {
     isLoading.value = false
   }

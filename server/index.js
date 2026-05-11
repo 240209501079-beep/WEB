@@ -50,10 +50,24 @@ app.use(cors({
 // 2. Rate Limiting: Mencegah spam & proteksi kuota Gemini
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 menit
-  max: 100, // Maksimal 100 request per IP dalam 15 menit
-  message: { error: 'Terlalu banyak permintaan dari IP ini. Silakan coba lagi dalam 15 menit.' },
+  max: 100, 
+  message: { error: 'Terlalu banyak permintaan (Rate Limit). Tunggu sebentar (15 menit) sebelum mencoba lagi.' },
   standardHeaders: true,
   legacyHeaders: false,
+  // 🔥 KHUSUS ADMIN: Tidak ada batasan (bypass limiter)
+  skip: async (req) => {
+    const authHeader = req.headers.authorization
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      try {
+        const idToken = authHeader.split('Bearer ')[1]
+        const decodedToken = await auth.verifyIdToken(idToken)
+        return decodedToken.admin === true
+      } catch (e) {
+        return false
+      }
+    }
+    return false
+  }
 })
 
 // Terapkan limiter ke semua route /api/
